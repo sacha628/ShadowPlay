@@ -170,9 +170,10 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         SetControlFont(subtitle, g_font);
 
         g_list = CreateWindowExW(WS_EX_CLIENTEDGE, L"LISTBOX", NULL,
-            WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT,
+            WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_OWNERDRAWFIXED,
             24, 105, 632, 330, hwnd, (HMENU)ID_GAMES, NULL, NULL);
         SetControlFont(g_list, g_font);
+        SendMessageW(g_list, LB_SETITEMHEIGHT, 0, 64);
 
         HWND refresh = CreateWindowW(L"BUTTON", L"ОНОВИТИ БІБЛІОТЕКУ",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 24, 452, 220, 42,
@@ -208,11 +209,27 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             return 0;
         }
         if ((LOWORD(wParam) == ID_LAUNCH && HIWORD(wParam) == BN_CLICKED) ||
-            (LOWORD(wParam) == ID_GAMES && HIWORD(wParam) == LBN_DBLCLK)) {
+            (LOWORD(wParam) == ID_GAMES && (HIWORD(wParam) == LBN_DBLCLK || HIWORD(wParam) == LBN_SELCHANGE))) {
             LaunchSelected();
             return 0;
         }
         break;
+    case WM_DRAWITEM: {
+        DRAWITEMSTRUCT* item = (DRAWITEMSTRUCT*)lParam;
+        if (item && item->CtlID == ID_GAMES && item->itemID != (UINT)-1) {
+            HBRUSH cardBrush = CreateSolidBrush((item->itemState & ODS_SELECTED) ? RGB(48, 48, 48) : RGB(22, 22, 22));
+            FillRect(item->hDC, &item->rcItem, cardBrush);
+            DeleteObject(cardBrush);
+            SetBkMode(item->hDC, TRANSPARENT);
+            SetTextColor(item->hDC, RGB(250, 250, 250));
+            RECT textRect = item->rcItem;
+            textRect.left += 18;
+            textRect.top += 20;
+            DrawTextW(item->hDC, (const wchar_t*)item->itemData, -1, &textRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+            return TRUE;
+        }
+        break;
+    }
     case WM_CTLCOLORSTATIC:
     case WM_CTLCOLORLISTBOX: {
         HDC dc = (HDC)wParam;
