@@ -110,6 +110,10 @@ static void SetStatus(const std::wstring& text) {
     if (g_status) SetWindowTextW(g_status, text.c_str());
 }
 
+static bool CompareGames(const GameEntry& a, const GameEntry& b) {
+    return _wcsicmp(a.name.c_str(), b.name.c_str()) < 0;
+}
+
 static void RefreshLibrary() {
     g_games.clear();
     ScanKnownFolder(CSIDL_DESKTOPDIRECTORY);
@@ -117,10 +121,7 @@ static void RefreshLibrary() {
     ScanKnownFolder(CSIDL_STARTMENU);
     ScanKnownFolder(CSIDL_COMMON_STARTMENU);
 
-    std::sort(g_games.begin(), g_games.end(),
-        [](const GameEntry& a, const GameEntry& b) {
-            return _wcsicmp(a.name.c_str(), b.name.c_str()) < 0;
-        });
+    std::sort(g_games.begin(), g_games.end(), CompareGames);
 
     SendMessageW(g_list, LB_RESETCONTENT, 0, 0);
     for (size_t i = 0; i < g_games.size(); ++i)
