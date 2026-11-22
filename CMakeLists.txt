@@ -7,5 +7,4 @@ endif()
 
 add_executable(ShadowPlay WIN32 src/main.cpp)
 target_compile_definitions(ShadowPlay PRIVATE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0600 WINVER=0x0600)
-target_compile_features(ShadowPlay PRIVATE cxx_std_11)
 target_link_libraries(ShadowPlay PRIVATE shell32 ole32 user32 gdi32)
